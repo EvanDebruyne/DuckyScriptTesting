@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rubber Ducky Script Tester</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .editor-container {
+            height: 400px;
+            border: 2px solid #4b5563;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        #editor {
+            width: 100%;
+            height: 100%;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 1rem;
+            background-color: #1e293b;
+            color: #f8fafc;
+            resize: none;
+            outline: none;
+        }
+        
+        .output-container {
+            min-height: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        
+        .command-line {
+            color: #10b981;
+        }
+        
+        .command-line::before {
+            content: "> ";
+        }
+        
+        .tab-active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        
+        .blink-cursor {
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            from, to { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-duck text-4xl text-yellow-400"></i>
+                    <h1 class="text-3xl font-bold">Rubber Ducky Script Tester</h1>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="saveBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-save mr-2"></i> Save Script
+                    </button>
+                    <button id="loadBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-folder-open mr-2"></i> Load Script
+                    </button>
+                </div>
+            </div>
+            <p class="mt-2 text-gray-400">Test your USB Rubber Ducky scripts safely in this simulated environment</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-gray-800 p-4 rounded-lg shadow-lg">
+                <div class="flex border-b border-gray-700 mb-4">
+                    <button id="scriptTab" class="tab-active px-4 py-2">Script Editor</button>
+                    <button id="previewTab" class="px-4 py-2 text-gray-400 hover:text-white">Preview</button>
+                </div>
+                
+                <div id="scriptEditor" class="editor-container">
+                    <textarea id="editor" spellcheck="false">REM Example Rubber Ducky Script
+DELAY 1000
+GUI r
+DELAY 500
+STRING notepad
+ENTER
+DELAY 1000
+STRING Hello World!
+ENTER
+REM This is a comment
+DELAY 500
+ALT F4
+STRING n
+ENTER</textarea>
+                </div>
+                
+                <div id="scriptPreview" class="editor-container hidden">
+                    <div class="output-container">
+                        <div class="command-line">REM Example Rubber Ducky Script</div>
+                        <div class="command-line">DELAY 1000</div>
+                        <div class="command-line">GUI r</div>
+                        <div class="command-line">DELAY 500</div>
+                        <div class="command-line">STRING notepad</div>
+                        <div class="command-line">ENTER</div>
+                        <div class="command-line">DELAY 1000</div>
+                        <div class="command-line">STRING Hello World!</div>
+                        <div class="command-line">ENTER</div>
+                        <div class="command-line">REM This is a comment</div>
+                        <div class="command-line">DELAY 500</div>
+                        <div class="command-line">ALT F4</div>
+                        <div class="command-line">STRING n</div>
+                        <div class="command-line">ENTER</div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 flex justify-between">
+                    <div class="flex space-x-2">
+                        <button id="clearBtn" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg">
+                            <i class="fas fa-trash-alt mr-2"></i> Clear
+                        </button>
+                        <button id="formatBtn" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg">
+                            <i class="fas fa-align-left mr-2"></i> Format
+                        </button>
+                    </div>
+                    <button id="runBtn" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg font-bold flex items-center">
+                        <i class="fas fa-play mr-2"></i> Run Script
+                    </button>
+                </div>
+            </div>
+            
+            <div class="bg-gray-800 p-4 rounded-lg shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold">Simulation Output</h2>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-gray-400">Simulation Speed:</span>
+                        <select id="speedSelect" class="bg-gray-700 text-white rounded px-2 py-1 text-sm">
+                            <option value="100">1x</option>
+                            <option value="50">2x</option>
+                            <option value="25" selected>4x</option>
+                            <option value="10">10x</option>
+                            <option value="1">Instant</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="output" class="output-container">
+                    <div class="text-gray-500">Output will appear here when you run your script...</div>
+                </div>
+                
+                <div class="mt-4 flex justify-between items-center">
+                    <div class="text-sm text-gray-400">
+                        <span id="status">Ready</span>
+                    </div>
+                    <button id="clearOutputBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg">
+                        <i class="fas fa-broom mr-2"></i> Clear Output
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-gray-800 p-4 rounded-lg shadow-lg mb-6">
+            <h2 class="text-xl font-bold mb-4">Quick Reference</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <h3 class="font-semibold text-blue-400 mb-2">Basic Commands</h3>
+                    <ul class="text-sm space-y-1">
+                        <li><code class="bg-gray-700 px-1 rounded">STRING text</code> - Type text</li>
+                        <li><code class="bg-gray-700 px-1 rounded">DELAY ms</code> - Delay in milliseconds</li>
+                        <li><code class="bg-gray-700 px-1 rounded">REM comment</code> - Comment (ignored)</li>
+                        <li><code class="bg-gray-700 px-1 rounded">DEFAULT_DELAY ms</code> - Set default delay</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-blue-400 mb-2">Special Keys</h3>
+                    <ul class="text-sm space-y-1">
+                        <li><code class="bg-gray-700 px-1 rounded">ENTER</code> - Return/Enter key</li>
+                        <li><code class="bg-gray-700 px-1 rounded">TAB</code> - Tab key</li>
+                        <li><code class="bg-gray-700 px-1 rounded">ESC</code> - Escape key</li>
+                        <li><code class="bg-gray-700 px-1 rounded">SPACE</code> - Space bar</li>
+                        <li><code class="bg-gray-700 px-1 rounded">GUI</code> - Windows/Command key</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-blue-400 mb-2">Modifier Keys</h3>
+                    <ul class="text-sm space-y-1">
+                        <li><code class="bg-gray-700 px-1 rounded">CTRL</code> - Control key</li>
+                        <li><code class="bg-gray-700 px-1 rounded">SHIFT</code> - Shift key</li>
+                        <li><code class="bg-gray-700 px-1 rounded">ALT</code> - Alt/Option key</li>
+                        <li><code class="bg-gray-700 px-1 rounded">CTRL-ALT</code> - Ctrl+Alt combo</li>
+                        <li><code class="bg-gray-700 px-1 rounded">CTRL-SHIFT</code> - Ctrl+Shift combo</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="mt-8 pt-4 border-t border-gray-700 text-center text-gray-400 text-sm">
+            <p>This is a simulated environment for testing Rubber Ducky scripts. No actual system commands are executed.</p>
+            <p class="mt-2">For educational purposes only. Use responsibly.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const editor = document.getElementById('editor');
+            const output = document.getElementById('output');
+            const runBtn = document.getElementById('runBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const clearOutputBtn = document.getElementById('clearOutputBtn');
+            const formatBtn = document.getElementById('formatBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const loadBtn = document.getElementById('loadBtn');
+            const status = document.getElementById('status');
+            const speedSelect = document.getElementById('speedSelect');
+            const scriptTab = document.getElementById('scriptTab');
+            const previewTab = document.getElementById('previewTab');
+            const scriptEditor = document.getElementById('scriptEditor');
+            const scriptPreview = document.getElementById('scriptPreview');
+            
+            // Tab switching
+            scriptTab.addEventListener('click', () => {
+                scriptTab.classList.add('tab-active');
+                scriptTab.classList.remove('text-gray-400');
+                previewTab.classList.remove('tab-active');
+                previewTab.classList.add('text-gray-400');
+                scriptEditor.classList.remove('hidden');
+                scriptPreview.classList.add('hidden');
+            });
+            
+            previewTab.addEventListener('click', () => {
+                previewTab.classList.add('tab-active');
+                previewTab.classList.remove('text-gray-400');
+                scriptTab.classList.remove('tab-active');
+                scriptTab.classList.add('text-gray-400');
+                scriptPreview.classList.remove('hidden');
+                scriptEditor.classList.add('hidden');
+                
+                // Update preview content
+                const previewContent = document.querySelector('#scriptPreview .output-container');
+                previewContent.innerHTML = '';
+                const lines = editor.value.split('\n');
+                lines.forEach(line => {
+                    if (line.trim()) {
+                        const div = document.createElement('div');
+                        div.className = 'command-line';
+                        div.textContent = line;
+                        previewContent.appendChild(div);
+                    }
+                });
+            });
+            
+            // Clear editor
+            clearBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to clear the editor?')) {
+                    editor.value = '';
+                }
+            });
+            
+            // Clear output
+            clearOutputBtn.addEventListener('click', () => {
+                output.innerHTML = '<div class="text-gray-500">Output will appear here when you run your script...</div>';
+            });
+            
+            // Format script
+            formatBtn.addEventListener('click', () => {
+                const lines = editor.value.split('\n');
+                let formatted = [];
+                
+                lines.forEach(line => {
+                    const trimmed = line.trim();
+                    if (trimmed) {
+                        // Capitalize commands
+                        if (trimmed.includes(' ')) {
+                            const command = trimmed.split(' ')[0].toUpperCase();
+                            const rest = trimmed.substring(command.length);
+                            formatted.push(command + rest);
+                        } else {
+                            formatted.push(trimmed.toUpperCase());
+                        }
+                    }
+                });
+                
+                editor.value = formatted.join('\n');
+            });
+            
+            // Save script
+            saveBtn.addEventListener('click', () => {
+                const content = editor.value;
+                if (!content.trim()) {
+                    alert('Script is empty!');
+                    return;
+                }
+                
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'rubber_ducky_script.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                status.textContent = 'Script saved';
+                setTimeout(() => status.textContent = 'Ready', 2000);
+            });
+            
+            // Load script
+            loadBtn.addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.txt';
+                
+                input.onchange = e => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = event => {
+                        editor.value = event.target.result;
+                        status.textContent = 'Script loaded';
+                        setTimeout(() => status.textContent = 'Ready', 2000);
+                    };
+                    reader.readAsText(file);
+                };
+                
+                input.click();
+            });
+            
+            // Run script
+            runBtn.addEventListener('click', () => {
+                const script = editor.value;
+                if (!script.trim()) {
+                    alert('Script is empty!');
+                    return;
+                }
+                
+                runScript(script);
+            });
+            
+            // Script execution function
+            function runScript(script) {
+                output.innerHTML = '';
+                status.textContent = 'Running...';
+                runBtn.disabled = true;
+                
+                const lines = script.split('\n').filter(line => line.trim() && !line.trim().startsWith('REM'));
+                const speed = parseInt(speedSelect.value);
+                let defaultDelay = 0;
+                let i = 0;
+                
+                function processLine() {
+                    if (i >= lines.length) {
+                        status.textContent = 'Execution complete';
+                        runBtn.disabled = false;
+                        
+                        // Add blinking cursor at the end
+                        const cursor = document.createElement('span');
+                        cursor.className = 'blink-cursor';
+                        cursor.textContent = '_';
+                        output.appendChild(cursor);
+                        
+                        return;
+                    }
+                    
+                    const line = lines[i].trim();
+                    status.textContent = `Executing line ${i+1}/${lines.length}`;
+                    
+                    // Check for DEFAULT_DELAY
+                    if (line.toUpperCase().startsWith('DEFAULT_DELAY')) {
+                        const parts = line.split(' ');
+                        if (parts.length > 1) {
+                            defaultDelay = parseInt(parts[1]) || 0;
+                        }
+                        i++;
+                        setTimeout(processLine, speed);
+                        return;
+                    }
+                    
+                    // Create output element
+                    const lineElement = document.createElement('div');
+                    lineElement.className = 'command-line';
+                    lineElement.textContent = line;
+                    output.appendChild(lineElement);
+                    
+                    // Scroll to bottom
+                    output.scrollTop = output.scrollHeight;
+                    
+                    // Simulate delay
+                    let delay = defaultDelay;
+                    
+                    // Check for DELAY command
+                    if (line.toUpperCase().startsWith('DELAY')) {
+                        const parts = line.split(' ');
+                        if (parts.length > 1) {
+                            delay = parseInt(parts[1]) || 0;
+                        }
+                    }
+                    
+                    // Process next line after delay
+                    i++;
+                    setTimeout(processLine, delay > 0 ? Math.min(delay, 1000) / (speed / 25) : speed);
+                }
+                
+                // Start processing
+                processLine();
+            }
+            
+            // Example script button
+            document.getElementById('exampleBtn')?.addEventListener('click', () => {
+                editor.value = `REM Example Rubber Ducky Script
+DELAY 1000
+GUI r
+DELAY 500
+STRING notepad
+ENTER
+DELAY 1000
+STRING Hello World!
+ENTER
+REM This is a comment
+DELAY 500
+ALT F4
+STRING n
+ENTER`;
+            });
+        });
+    </script>
+</body>
+</html>
