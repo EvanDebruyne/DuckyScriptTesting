@@ -1,0 +1,7 @@
+DELAY 1000
+GUI r
+DELAY 500
+STRING explorer C:\Users\ethan\
+ENTER
+DELAY 1000
+F11
